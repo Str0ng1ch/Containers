@@ -7,7 +7,8 @@ COPY requirements.txt .
 # Одна команда RUN для установки пакетов + очищение кэша
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
+# Используется dockerignore
+COPY . .
 
 # Создание юзера с ограниченными правами
 RUN useradd -m -u 1000 appuser
