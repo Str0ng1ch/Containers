@@ -18,6 +18,9 @@ cur.execute('''
         name VARCHAR(50)
     );
 ''')
+cur.execute('''
+    INSERT INTO users (name) VALUES ('Artem');
+''')
 conn.commit()
 cur.close()
 conn.close()

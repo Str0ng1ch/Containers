@@ -1,20 +1,32 @@
-# Установка минимального образа
+# Уточнили версию базового образа.
+# Используем версию slim, так как занимает мало памяти
 FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-# Одна команда RUN для установки пакетов + очищение кэша
+# Соединили команды RUN, чтобы не создавать лишних слоев, а также удалили всякие кэши через rm команду
+RUN apt-get update && apt-get install -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Сначала копируем requirements (а не весь проект) и устанавливаем зависимости.
+COPY ./requirements.txt .
+
+# Добавили флаг --no-cache-dir
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Используется dockerignore
+# Копируем файлы проекта после установки зависимостей (вместе с .gitignore)
 COPY . .
 
 # Создание юзера с ограниченными правами
 RUN useradd -m -u 1000 appuser
 USER appuser
 
+# Монтируем папку с файлами
 VOLUME /app/data
 
+# Открываем порт для веб-приложения
 EXPOSE 5000
-CMD ["python", "app.py"]
+
+# Best practice это писать запуск скрипта в ENTRYPOINT, а параметры в CMD
+ENTRYPOINT [ "python", "app.py"]
+CMD ["--output-dir", "/app/data"]

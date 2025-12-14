@@ -1,8 +1,11 @@
-import os
 import psycopg2
 from flask import Flask
+import os
+import argparse
 
 app = Flask(__name__)
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', '--output-dir', type=str)
 
 
 def get_db_connection():
@@ -16,6 +19,22 @@ def get_db_connection():
 
 
 @app.route('/')
+def hello():
+    return "Hello from Docker!"
+
+
+@app.route('/data')
+def data():
+    # Чтение данных из volume
+    data_path = '/app/data/example.txt'
+    if os.path.exists(data_path):
+        with open(data_path, 'r') as f:
+            content = f.read()
+        return f"Data from volume: {content}"
+    return "No data file found. Create one in /app/data/"
+
+
+@app.route('/database')
 def index():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -32,4 +51,10 @@ def health():
 
 
 if __name__ == '__main__':
+    args = parser.parse_args()
+
+    # Проверка монтирования
+    with open(f"{args.output_dir}/output.txt", "w") as f:
+        f.write("Application was started.")
+
     app.run(host='0.0.0.0', port=5000)
